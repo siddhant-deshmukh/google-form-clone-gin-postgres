@@ -28,6 +28,10 @@ func main() {
 
 	router := gin.Default()
 
+	userRoutesGroup := router.Group("/u")
+	userRoutesGroup.Use(user.AuthUserMiddleWare())
+	user.RegisterUserRoutes(userRoutesGroup)
+
 	userAuthRoutesGroup := router.Group("/")
 	user.RegisterUserAuthRoutes(userAuthRoutesGroup)
 

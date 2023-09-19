@@ -145,6 +145,6 @@ func saveTokenString(c *gin.Context, ID string) error {
 		return err
 	}
 
-	c.SetCookie("todo_auth_token", tokenString, 364000, "/", "http://www.localhost:8080.com", false, true)
+	c.SetCookie("gf_clone_auth_token", tokenString, 364000, "/", "http://www.localhost:8080.com", false, true)
 	return nil
 }
