@@ -11,13 +11,25 @@ import (
 )
 
 func getData(c *gin.Context) {
-	user := c.MustGet("user").(User)
-	var forms []form.Form
-	result := db.Find(&forms, "author_id = ?", user.ID)
+	user_id := c.MustGet("user_id").(uint)
+
+	user, err := getUserById(user_id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "While getting user",
+			"err":     err,
+		})
+		return
+	}
+
+	var forms []uint
+	result := db.Model(form.Form{}).Select("id").Where("author_id = ?", user_id).Find(&forms)
 	if result.Error != nil {
+		fmt.Println(result.Error.Error())
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "While getting forms of user",
-			"error":   result.Error,
+			"err":     result.Error,
 		})
 		return
 	}
@@ -68,7 +80,7 @@ func AuthUserMiddleWare() gin.HandlerFunc {
 				return
 			}
 
-			user, err := getUserById(uint(uid))
+			// user, err := getUserById(uint(uid))
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":   err,
@@ -78,7 +90,8 @@ func AuthUserMiddleWare() gin.HandlerFunc {
 				return
 			}
 
-			c.Set("user", user)
+			// c.Set("user", user)
+			c.Set("user_id", uint(uid))
 			c.Next()
 
 		} else {

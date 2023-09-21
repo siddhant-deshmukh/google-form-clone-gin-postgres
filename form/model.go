@@ -13,19 +13,19 @@ import (
 var db *gorm.DB
 
 type Form struct {
-	ID               uint `gorm:"primaryKey;autoIncrement"`
-	AuthorID         uint
-	Title            string           `gorm:"type:varchar(100);not null"`
-	Description      string           `gorm:"type:varchar(300);not null"`
-	Quiz_Setting     Quiz_Setting     `gorm:"type:jsonb"`
-	Response_Setting Response_Setting `gorm:"type:jsonb"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               uint             `gorm:"primaryKey;autoIncrement;<-:create" json:"id"`
+	AuthorID         uint             `json:"author_id" gorm:"not null"`
+	Title            string           `gorm:"type:varchar(100);not null;check: char_length(title) > 5" json:"title" validate:"min=3,max=100,required"`
+	Description      string           `gorm:"type:varchar(300);not null" json:"description" validate:"max=300"`
+	Quiz_Setting     Quiz_Setting     `gorm:"type:jsonb" json:"quiz_setting"`
+	Response_Setting Response_Setting `gorm:"type:jsonb" json:"response_setting"`
+	CreatedAt        time.Time        `json:"created_at"`
+	UpdatedAt        time.Time        `json:"updated_at"`
 }
 
 type Quiz_Setting struct {
-	IsQuiz        bool `gorm:"default:true"`
-	DefaultPoints uint `gorm:"default:1"`
+	IsQuiz        bool `gorm:"default:true" json:"is_quiz"`
+	DefaultPoints uint `gorm:"default:1; check: default_points > 0" json:"default_points" validate:"omitempty,min=1,max=100"`
 }
 
 func (quizeS *Quiz_Setting) Scan(value interface{}) error {
@@ -46,9 +46,9 @@ func (quizeS Quiz_Setting) Value() (driver.Value, error) {
 }
 
 type Response_Setting struct {
-	CollectEmail bool `gorm:"default:true"`
-	AllowEditRes bool `gorm:"default:true"`
-	SendResCopy  bool `gorm:"default:true"`
+	CollectEmail bool `gorm:"default:true" json:"collect_email"`
+	AllowEditRes bool `gorm:"default:true" json:"allow_edit_res"`
+	SendResCopy  bool `gorm:"default:true" json:"send_res_copy"`
 }
 
 func (resS *Response_Setting) Scan(value interface{}) error {
@@ -71,4 +71,20 @@ func (resS Response_Setting) Value() (driver.Value, error) {
 func SetFormTable(gormDB *gorm.DB) {
 	db = gormDB
 	db.AutoMigrate(&Form{})
+}
+
+type EditForm struct {
+	Title            string                `json:"title,omitempty" validate:"omitempty,min=5,max=100"`
+	Description      string                `json:"description,omitempty" validate:"omitempty,max=300"`
+	Quiz_Setting     Edit_Quiz_Setting     `json:"quiz_setting,omitempty"  validate:"omitempty"`
+	Response_Setting Edit_Response_Setting `json:"response_setting,omitempty"  validate:"omitempty"`
+}
+type Edit_Quiz_Setting struct {
+	IsQuiz        bool `json:"is_quiz,omitempty" validate:"omitempty"`
+	DefaultPoints uint `json:"default_points,omitempty" validate:"omitempty,min=1,max=100"`
+}
+type Edit_Response_Setting struct {
+	CollectEmail bool `json:"collect_email,omitempty" validate:"omitempty"`
+	AllowEditRes bool `json:"allow_edit_res,omitempty" validate:"omitempty"`
+	SendResCopy  bool `json:"send_res_copy,omitempty" validate:"omitempty"`
 }

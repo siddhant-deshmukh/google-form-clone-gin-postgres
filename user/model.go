@@ -9,9 +9,9 @@ var db *gorm.DB
 
 type User struct {
 	ID       uint
-	Name     string      `gorm:"type:varchar(20); not null"`
-	Email    string      `gorm:"type:varchar(100);uniqueIndex; not null;check:email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$' "`
-	Password string      `gorm:"type:varchar(100); not null"`
+	Name     string      `gorm:"type:varchar(20); not null" validate:"max=20,min=2,required"`
+	Email    string      `gorm:"type:varchar(100);uniqueIndex; not null;check:email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'" validate:"email,required"`
+	Password string      `gorm:"type:varchar(100); not null" validate:"max=20,min=5,required"`
 	Forms    []form.Form `gorm:"foreignKey:AuthorID;references:ID"`
 }
 type UserCreateForm struct {

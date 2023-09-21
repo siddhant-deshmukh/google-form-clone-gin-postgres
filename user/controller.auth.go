@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -9,8 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/joho/godotenv"
+	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/utils"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var token_key = getTokenKey()
@@ -84,6 +88,14 @@ func registerUser(c *gin.Context) {
 		return
 	}
 
+	if res_msg, err := utils.ValidateFieldWithStruct(newUserData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": res_msg,
+			"err":     err,
+		})
+		return
+	}
+
 	var bytes []byte
 	bytes, err = bcrypt.GenerateFromPassword([]byte(newUserData.Password), 14)
 	if err != nil {
@@ -93,17 +105,20 @@ func registerUser(c *gin.Context) {
 	newUserData.Password = string(bytes)
 
 	result := db.Create(&newUserData)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Some error occured",
+	var duplicateKey = &pgconn.PgError{Code: "23505"}
+	if errors.As(result.Error, &duplicateKey) {
+		c.JSON(http.StatusConflict, gin.H{
+			"message": "Email already exist",
 			"err":     result.Error,
 		})
 		return
 	}
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusConflict, gin.H{
-			"message": "Email already exist",
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Some error occured",
 			"err":     result.Error,
+			"ee":      result.Error.Error(),
+			"ee2":     gorm.ErrDuplicatedKey.Error(),
 		})
 		return
 	}

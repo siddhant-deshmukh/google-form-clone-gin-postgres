@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/form"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/user"
@@ -23,17 +26,25 @@ func main() {
 		log.Fatal("Unable to connect to database")
 	}
 
+	if _, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		fmt.Println("Okay")
+		// v.RegisterValidation("bookabledate", bookableDate)
+	}
+
 	user.SetUserTable(db)
 	form.SetFormTable(db)
 
 	router := gin.Default()
 
+	userAuthRoutesGroup := router.Group("/")
+	user.RegisterUserAuthRoutes(userAuthRoutesGroup)
+
 	userRoutesGroup := router.Group("/u")
 	userRoutesGroup.Use(user.AuthUserMiddleWare())
 	user.RegisterUserRoutes(userRoutesGroup)
 
-	userAuthRoutesGroup := router.Group("/")
-	user.RegisterUserAuthRoutes(userAuthRoutesGroup)
-
+	formRoutesGroup := router.Group("/f")
+	formRoutesGroup.Use(user.AuthUserMiddleWare())
+	form.RegisterFormRoutes(formRoutesGroup)
 	router.Run("localhost:8080")
 }
