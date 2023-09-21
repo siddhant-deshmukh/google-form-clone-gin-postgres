@@ -3,13 +3,16 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/form"
+	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/question"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -33,6 +36,7 @@ func main() {
 
 	user.SetUserTable(db)
 	form.SetFormTable(db)
+	question.SetQuestionTable(db)
 
 	router := gin.Default()
 
@@ -46,5 +50,14 @@ func main() {
 	formRoutesGroup := router.Group("/f")
 	formRoutesGroup.Use(user.AuthUserMiddleWare())
 	form.RegisterFormRoutes(formRoutesGroup)
+
+	questionRoutesGroup := router.Group("/q")
+	questionRoutesGroup.Use(user.AuthUserMiddleWare())
+	question.RegisterQuestionRoutes(questionRoutesGroup)
+
+	// srv := handler.NewDefaultServer(generated.NewExecutableSchema())
+
+	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+
 	router.Run("localhost:8080")
 }
