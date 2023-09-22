@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/utils"
@@ -52,14 +51,8 @@ func getFormById(c *gin.Context) {
 	var form Form
 	user_id := c.MustGet("user_id").(uint)
 
-	id := c.Param("id")
-	formId, err := strconv.ParseUint(id, 10, 32)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Bad form id format",
-			"err":     err,
-		})
+	formId, err := utils.GetFieldFromUrl(c, "id")
+	if err == nil {
 		return
 	}
 
@@ -94,13 +87,8 @@ func editForm(c *gin.Context) {
 	var form EditForm
 	user_id := c.MustGet("user_id").(uint)
 
-	id := c.Param("id")
-	formId, err := strconv.ParseUint(id, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Bad form id format",
-			"err":     err,
-		})
+	formId, err := utils.GetFieldFromUrl(c, "id")
+	if err == nil {
 		return
 	}
 
@@ -183,13 +171,8 @@ func deleteForm(c *gin.Context) {
 	var form Form
 	user_id := c.MustGet("user_id").(uint)
 
-	id := c.Param("id")
-	formId, err := strconv.ParseUint(id, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Bad form id format",
-			"err":     err,
-		})
+	formId, err := utils.GetFieldFromUrl(c, "id")
+	if err == nil {
 		return
 	}
 

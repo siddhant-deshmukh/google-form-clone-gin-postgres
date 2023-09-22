@@ -7,20 +7,23 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/question"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 
 type Form struct {
-	ID               uint             `gorm:"primaryKey;autoIncrement;<-:create" json:"id"`
-	AuthorID         uint             `json:"author_id" gorm:"not null"`
-	Title            string           `gorm:"type:varchar(100);not null;check: char_length(title) > 5" json:"title" validate:"min=3,max=100,required"`
-	Description      string           `gorm:"type:varchar(300);not null" json:"description" validate:"max=300"`
-	Quiz_Setting     Quiz_Setting     `gorm:"type:jsonb" json:"quiz_setting"`
-	Response_Setting Response_Setting `gorm:"type:jsonb" json:"response_setting"`
-	CreatedAt        time.Time        `json:"created_at"`
-	UpdatedAt        time.Time        `json:"updated_at"`
+	ID               uint                `gorm:"primaryKey;autoIncrement;<-:create" json:"id"`
+	AuthorID         uint                `json:"author_id" gorm:"not null"`
+	Title            string              `gorm:"type:varchar(100);not null;check: char_length(title) > 5" json:"title" validate:"min=3,max=100,required"`
+	Description      string              `gorm:"type:varchar(300);not null" json:"description" validate:"max=300"`
+	Quiz_Setting     Quiz_Setting        `gorm:"type:jsonb" json:"quiz_setting"`
+	Response_Setting Response_Setting    `gorm:"type:jsonb" json:"response_setting"`
+	CreatedAt        time.Time           `json:"created_at"`
+	UpdatedAt        time.Time           `json:"updated_at"`
+	Questions        []question.Question `gorm:"foreignKey:FormID;references:ID"`
+	QueSeq           question.QueSeq     `gorm:"foreignKey:id"`
 }
 
 type Quiz_Setting struct {
@@ -87,4 +90,17 @@ type Edit_Response_Setting struct {
 	CollectEmail bool `json:"collect_email,omitempty" validate:"omitempty"`
 	AllowEditRes bool `json:"allow_edit_res,omitempty" validate:"omitempty"`
 	SendResCopy  bool `json:"send_res_copy,omitempty" validate:"omitempty"`
+}
+
+func (form *Form) AfterCreate(tx *gorm.DB) (err error) {
+	que := question.QueSeq{
+		AuthorID:    form.AuthorID,
+		FormID:      form.ID,
+		QuestionSeq: []uint{},
+	}
+
+	if result := tx.Create(&que); result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

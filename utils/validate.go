@@ -1,6 +1,16 @@
 package utils
 
-import "github.com/go-playground/validator/v10"
+import (
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
+	"gorm.io/gorm"
+)
 
 var validate = validator.New()
 
@@ -20,4 +30,47 @@ func ValidateFieldWithStruct(s interface{}) (string, error) {
 	}
 
 	return "", nil
+}
+
+func GetTokenKey() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Unable to get token Key")
+	}
+
+	token_key := os.Getenv("TOKEN_KEY")
+	if token_key == "" {
+		log.Fatal("Please add TOKEN_KEY in .env")
+	}
+	return token_key
+}
+
+func GetFieldFromUrl(c *gin.Context, field string) (uint, error) {
+	id := c.Param("id")
+	uID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Bad form id format",
+			"err":     err,
+		})
+		return 0, err
+	}
+	return uint(uID), nil
+}
+
+type Result struct {
+	AuthorID uint `json:"author_id"`
+}
+
+func GetFormAuthor(formId uint, db *gorm.DB) (uint, error) {
+	var result Result
+	response := db.Raw("SELECT author_id FROM forms WHERE id = ?", formId).Scan(&result)
+
+	if response.Error != nil {
+		return 0, response.Error
+	}
+	if response.RowsAffected == 0 {
+		return 0, gorm.ErrRecordNotFound
+	}
+	return result.AuthorID, nil
 }

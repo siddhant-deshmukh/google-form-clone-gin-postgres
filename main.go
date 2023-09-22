@@ -35,8 +35,8 @@ func main() {
 	}
 
 	user.SetUserTable(db)
-	form.SetFormTable(db)
 	question.SetQuestionTable(db)
+	form.SetFormTable(db)
 
 	router := gin.Default()
 

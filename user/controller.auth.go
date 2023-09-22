@@ -2,35 +2,19 @@ package user
 
 import (
 	"errors"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/joho/godotenv"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-var token_key = getTokenKey()
-
-func getTokenKey() string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Unable to get token Key")
-	}
-
-	token_key := os.Getenv("TOKEN_KEY")
-	if token_key == "" {
-		log.Fatal("Please add TOKEN_KEY in .env")
-	}
-	return token_key
-}
+var token_key = utils.GetTokenKey()
 
 func userLogin(c *gin.Context) {
 	var userData User
