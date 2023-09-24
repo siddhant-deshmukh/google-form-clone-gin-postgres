@@ -114,9 +114,9 @@ func editQuestion(c *gin.Context) {
 		if value != nil {
 			keys = append(keys, key)
 			if key == "options" {
-				que_map[key] = gorm.Expr("ARRAY[ ? ]", arrayToString(editQue.Options))
+				que_map[key] = gorm.Expr("ARRAY[ ? ]", utils.ArrayToString(editQue.Options))
 			} else if key == "correct_ans" {
-				que_map[key] = gorm.Expr("ARRAY[ ? ]", arrayToString(editQue.CorrectAns))
+				que_map[key] = gorm.Expr("ARRAY[ ? ]", utils.ArrayToString(editQue.CorrectAns))
 			}
 		}
 	}
@@ -224,22 +224,5 @@ func getQuestions(c *gin.Context) {
 				},
 			})
 		}
-	}
-}
-
-var arrayToString = func(arr []string) string {
-	if len(arr) <= 0 {
-		return ""
-	} else if len(arr) == 1 {
-		return arr[0]
-	} else if len(arr) == 2 {
-		return arr[0] + ", " + arr[1]
-	} else {
-
-		str := arr[0] + ", "
-		for i := 0; i < len(arr)-1; i++ {
-			str += arr[i] + ", "
-		}
-		return str + arr[len(arr)-1]
 	}
 }

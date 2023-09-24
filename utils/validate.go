@@ -87,3 +87,20 @@ func GetQuestionAuthor(quesId uint, db *gorm.DB) (uint, error) {
 	}
 	return result.AuthorID, nil
 }
+
+func ArrayToString(arr []string) string {
+	if len(arr) <= 0 {
+		return ""
+	} else if len(arr) == 1 {
+		return arr[0]
+	} else if len(arr) == 2 {
+		return arr[0] + ", " + arr[1]
+	} else {
+
+		str := arr[0] + ", "
+		for i := 0; i < len(arr)-1; i++ {
+			str += arr[i] + ", "
+		}
+		return str + arr[len(arr)-1]
+	}
+}
