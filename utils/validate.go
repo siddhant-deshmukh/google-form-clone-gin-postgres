@@ -46,7 +46,7 @@ func GetTokenKey() string {
 }
 
 func GetFieldFromUrl(c *gin.Context, field string) (uint, error) {
-	id := c.Param("id")
+	id := c.Param(field)
 	uID, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -65,6 +65,19 @@ type Result struct {
 func GetFormAuthor(formId uint, db *gorm.DB) (uint, error) {
 	var result Result
 	response := db.Raw("SELECT author_id FROM forms WHERE id = ?", formId).Scan(&result)
+
+	if response.Error != nil {
+		return 0, response.Error
+	}
+	if response.RowsAffected == 0 {
+		return 0, gorm.ErrRecordNotFound
+	}
+	return result.AuthorID, nil
+}
+
+func GetQuestionAuthor(quesId uint, db *gorm.DB) (uint, error) {
+	var result Result
+	response := db.Raw("SELECT author_id FROM questions WHERE id = ?", quesId).Scan(&result)
 
 	if response.Error != nil {
 		return 0, response.Error

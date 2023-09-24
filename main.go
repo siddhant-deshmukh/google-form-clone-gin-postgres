@@ -16,6 +16,7 @@ import (
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
@@ -24,7 +25,9 @@ func main() {
 		log.Fatal("Unable to get Postgresql data source name (DSN)")
 	}
 	dsn := os.Getenv("PG_DATA_SOURCE_NAME")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		log.Fatal("Unable to connect to database")
 	}

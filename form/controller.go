@@ -7,11 +7,13 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/utils"
+	"gorm.io/gorm"
 )
 
 func createForm(c *gin.Context) {
-	var newForm Form
+	var newForm NewForm
 	user_id := c.MustGet("user_id").(uint)
 	err := c.BindJSON(&newForm)
 	if err != nil {
@@ -22,6 +24,8 @@ func createForm(c *gin.Context) {
 		return
 	}
 
+	newForm.AuthorID = user_id
+
 	if res_msg, err := utils.ValidateFieldWithStruct(newForm); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": res_msg,
@@ -30,9 +34,9 @@ func createForm(c *gin.Context) {
 		return
 	}
 
-	newForm.AuthorID = user_id
-
-	result := db.Create(&newForm)
+	var form Form
+	mapstructure.Decode(newForm, &form)
+	result := db.Create(&form)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "While creating data",
@@ -42,7 +46,8 @@ func createForm(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"form": newForm,
+		"newform": newForm,
+		"form":    form,
 	})
 }
 
@@ -52,11 +57,10 @@ func getFormById(c *gin.Context) {
 	user_id := c.MustGet("user_id").(uint)
 
 	formId, err := utils.GetFieldFromUrl(c, "id")
-	if err == nil {
+	if err != nil {
 		return
 	}
-
-	result := db.First(&form, formId)
+	result := db.Model(&Form{ID: formId}).First(&form)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "While creating result",
@@ -64,7 +68,6 @@ func getFormById(c *gin.Context) {
 		})
 		return
 	}
-
 	isAuthor = user_id == form.AuthorID
 
 	if isAuthor {
@@ -88,7 +91,7 @@ func editForm(c *gin.Context) {
 	user_id := c.MustGet("user_id").(uint)
 
 	formId, err := utils.GetFieldFromUrl(c, "id")
-	if err == nil {
+	if err != nil {
 		return
 	}
 
@@ -172,7 +175,7 @@ func deleteForm(c *gin.Context) {
 	user_id := c.MustGet("user_id").(uint)
 
 	formId, err := utils.GetFieldFromUrl(c, "id")
-	if err == nil {
+	if err != nil {
 		return
 	}
 
@@ -191,4 +194,9 @@ func deleteForm(c *gin.Context) {
 		})
 		return
 	}
+}
+
+func SetFormTable(gormDB *gorm.DB) {
+	db = gormDB
+	db.AutoMigrate(&Form{})
 }

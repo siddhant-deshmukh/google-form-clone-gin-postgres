@@ -61,7 +61,7 @@ func AuthUserMiddleWare() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":   err,
-				"message": "Internal Server error (Parse)",
+				"message": "Internal Server error authentication (Parse)",
 			})
 			c.Abort()
 			return
