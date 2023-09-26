@@ -61,7 +61,7 @@ type QuestionWithOutAnswer struct {
 
 func (que *Question) AfterCreate(tx *gorm.DB) (err error) {
 	currQueSeq := QueSeq{AuthorID: que.AuthorID}
-	result := tx.First(&currQueSeq)
+	result := tx.Where("form_id = ?", que.FormID).First(&currQueSeq)
 	if result.Error != nil {
 		return result.Error
 	}

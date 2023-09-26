@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/form"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/question"
+	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/responses"
 	"github.com/siddhant-deshmukh/google-form-clone-gin-postgres/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -40,6 +41,7 @@ func main() {
 	user.SetUserTable(db)
 	question.SetQuestionTable(db)
 	form.SetFormTable(db)
+	responses.SetResponseTable(db)
 
 	router := gin.Default()
 
@@ -57,6 +59,10 @@ func main() {
 	questionRoutesGroup := router.Group("/q")
 	questionRoutesGroup.Use(user.AuthUserMiddleWare())
 	question.RegisterQuestionRoutes(questionRoutesGroup)
+
+	resRoutesGroup := router.Group("/r")
+	resRoutesGroup.Use(user.AuthUserMiddleWare())
+	responses.RegisterResponseRoutes(resRoutesGroup)
 
 	// srv := handler.NewDefaultServer(generated.NewExecutableSchema())
 
